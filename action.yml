@@ -41,13 +41,6 @@ runs:
         TOKEN='${{ env.TOKEN }}'
 
         LATEST_DOWNLOAD_URL=$(curl -s -L -o /dev/null -w "%{url_effective}" "https://github.com/${GITHUB_REPOSITORY}/releases/latest")
-
-        echo 'curl -s -X POST "$UPDATE_API_URL" \
-          -H "Content-Type: application/json" \
-          -d { \
-          "token": "$TOKEN",\
-          "download_url": "$LATEST_DOWNLOAD_URL" \
-          } \'
           
         RESPONSE=$(curl -s -X POST "$UPDATE_API_URL" \
           -H "Content-Type: application/json" \
@@ -59,9 +52,9 @@ runs:
           )
 
         echo "Response from Update: $RESPONSE"
-        STATUS=$(echo "$RESPONSE" | jq -r '.status')
+        STATUS=$(echo "$RESPONSE" | jq -r '.id')
 
-        if [ "$STATUS" != "success" ]; then
+        if [ $? != 0 ]; then
           echo "Error: Update failed."
           exit 1
         fi
