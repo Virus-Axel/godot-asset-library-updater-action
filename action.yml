@@ -37,18 +37,25 @@ runs:
 
     - shell: sh
       run: |
-        UPDATE_API_URL="https://godotengine.org/asset-library/api/asset/edit/${{ inputs.asset_id }}"
-        TOKEN=${{ env.TOKEN }}
+        UPDATE_API_URL="https://godotengine.org/asset-library/api/asset/${{ inputs.asset_id }}"
+        TOKEN='${{ env.TOKEN }}'
 
         LATEST_DOWNLOAD_URL=$(curl -s -L -o /dev/null -w "%{url_effective}" "https://github.com/${GITHUB_REPOSITORY}/releases/latest")
 
-        RESPONSE=$(curl -s -X POST "$UPDATE_API_URL" \
-          -H "Authorization: Bearer $TOKEN" \
+        echo 'curl -s -X POST "$UPDATE_API_URL" \
           -H "Content-Type: application/json" \
-          -d '{ \
-          "token": "$TOKEN" \
-          "": "$LATEST_DOWNLOAD_URL"
-          }' \
+          -d { \
+          "token": "$TOKEN",\
+          "download_url": "$LATEST_DOWNLOAD_URL" \
+          } \'
+          
+        RESPONSE=$(curl -s -X POST "$UPDATE_API_URL" \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $TOKEN" \
+          -d "{ \
+          \"token\": \"$TOKEN\",\
+          \"download_url\": \"$LATEST_DOWNLOAD_URL\"\
+          }"\
           )
 
         echo "Response from Update: $RESPONSE"
