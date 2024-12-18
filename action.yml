@@ -14,9 +14,11 @@ inputs:
     required: true
 
 runs:
+  using: composite
   steps:
-    - run: |
-        API_URL="https://godotengine.org/asset-library/login"
+    - shell: sh
+      run: |
+        API_URL="https://godotengine.org/asset-library/api/login"
 
         RESPONSE=$(curl -s -X POST "$API_URL" \
           -H "Content-Type: application/json" \
@@ -33,8 +35,9 @@ runs:
 
         echo "TOKEN=$TOKEN" >> $GITHUB_ENV
 
-    - run: |
-        UPDATE_API_URL="https://godotengine.org/asset-library/asset/edit/${{ inputs.username }}"
+    - shell: sh
+      run: |
+        UPDATE_API_URL="https://godotengine.org/asset-library/api/asset/edit/${{ inputs.username }}"
         TOKEN=$TOKEN
 
         LATEST_DOWNLOAD_URL=$(curl -s -L -o /dev/null -w "%{url_effective}" "https://github.com/${GITHUB_REPOSITORY}/releases/latest")
