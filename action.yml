@@ -1,0 +1,57 @@
+name: "godot-asset-library-updater-action"
+description: "Automatically updates a Godot asset download link to latest Github release."
+
+author: "Axel Benjaminsson"
+inputs:
+  asset_id:
+    description: "ID of the asset to update."
+    required: true
+  username:
+    description: "The username for API login. Using Github secrets is adviced."
+    required: true
+  password:
+    description: "The password for API login. Using Github secrets is adviced."
+    required: true
+
+runs:
+  steps:
+    - run: |
+        API_URL="https://godotengine.org/asset-library/login"
+
+        RESPONSE=$(curl -s -X POST "$API_URL" \
+          -H "Content-Type: application/json" \
+          -d "{\"username\": \"${{ inputs.username }}\", \"password\": \"${{ inputs.password }}\"}")
+
+        echo "RESPONSE: $RESPONSE" # Optional: log response for debugging
+
+        TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+
+        if [ "$TOKEN" == "null" ] || [ -z "$TOKEN" ]; then
+          echo "Error: Unable to fetch token."
+          exit 1
+        fi
+
+        echo "TOKEN=$TOKEN" >> $GITHUB_ENV
+
+    - run: |
+        UPDATE_API_URL="https://godotengine.org/asset-library/asset/edit/${{ inputs.username }}"
+        TOKEN=$TOKEN
+
+        LATEST_DOWNLOAD_URL=$(curl -s -L -o /dev/null -w "%{url_effective}" "https://github.com/${GITHUB_REPOSITORY}/releases/latest")
+
+        RESPONSE=$(curl -s -X POST "$UPDATE_API_URL" \
+          -H "Authorization: Bearer $TOKEN" \
+          -H "Content-Type: application/json" \
+          -d '{ \
+          "token": "$TOKEN" \
+          "": "$LATEST_DOWNLOAD_URL"
+          }' \
+          )
+
+        echo "Response from Update: $RESPONSE"
+        STATUS=$(echo "$RESPONSE" | jq -r '.status')
+
+        if [ "$STATUS" != "success" ]; then
+          echo "Error: Update failed."
+          exit 1
+        fi
