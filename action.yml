@@ -38,7 +38,7 @@ runs:
     - shell: sh
       run: |
         UPDATE_API_URL="https://godotengine.org/asset-library/api/asset/edit/${{ inputs.username }}"
-        TOKEN=$TOKEN
+        TOKEN=${{ env.TOKEN }}
 
         LATEST_DOWNLOAD_URL=$(curl -s -L -o /dev/null -w "%{url_effective}" "https://github.com/${GITHUB_REPOSITORY}/releases/latest")
 
